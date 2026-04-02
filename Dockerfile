@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     libgles2 \
     libgomp1 \
+    libegl1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

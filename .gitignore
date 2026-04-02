@@ -1,6 +1,5 @@
-dataset.csv
+model.pkl
 hand_landmarker.task
 __pycache__/
 *.pyc
 .env
-model.pkl
