@@ -3,8 +3,8 @@ FROM python:3.11-slim
 # Install system libraries MediaPipe needs
 RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
-    libgl1-mesa-glx \
-    libgles2-mesa \
+    libgl1 \
+    libgles2 \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir \
     numpy \
     gunicorn
 
-# Expose port 7860 (Hugging Face uses this port)
+# Expose port 7860
 EXPOSE 7860
 
 # Start the app
