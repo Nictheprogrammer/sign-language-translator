@@ -31,9 +31,8 @@ a webcam to communicate using ASL, without needing a human interpreter.
 ---
 
 ## 🛠️ How It Works
-```
-Webcam → MediaPipe (21 hand landmarks) → Neural Network → Predicted Letter
-```
+
+**Webcam → MediaPipe (21 hand landmarks) → Neural Network → Predicted Letter**
 
 1. **Hand Detection** — MediaPipe by Google detects 21 key points on the hand in real time
 2. **Normalization** — Landmark positions are normalized relative to the wrist, making predictions consistent regardless of hand position or distance
@@ -72,7 +71,7 @@ Webcam → MediaPipe (21 hand landmarks) → Neural Network → Predicted Letter
 
 **1. Python version compatibility**
 MediaPipe didn't support Python 3.14, requiring migration from the old 
-`mp.solutions` API to the new Tasks API — which had almost no documentation 
+mp.solutions API to the new Tasks API — which had almost no documentation 
 for beginners.
 
 **2. Similar letter confusion**
@@ -81,12 +80,12 @@ from Random Forest to a Neural Network and adding StandardScaler preprocessing
 significantly improved accuracy on these edge cases.
 
 **3. Deployment system libraries**
-MediaPipe requires OpenGL libraries (`libEGL`, `libGL`) that aren't installed 
+MediaPipe requires OpenGL libraries (libEGL, libGL) that aren't installed 
 on cloud servers by default. Debugging this required reading deep into 
 MediaPipe's C++ bindings and Docker configuration.
 
 **4. Binary file in git history**
-The trained model (`model.pkl`) was rejected by Hugging Face as a binary file. 
+The trained model (model.pkl) was rejected by Hugging Face as a binary file. 
 The solution was to remove it from git history and make the app auto-train 
 on first startup using the dataset.
 
@@ -103,23 +102,19 @@ on first startup using the dataset.
 ---
 
 ## 🚀 Run Locally
-```bash
-# Clone the repository
-git clone https://github.com/Nictheprogrammer/sign-language-translator
 
-# Install dependencies
-pip install flask opencv-python mediapipe scikit-learn numpy
+    git clone https://github.com/Nictheprogrammer/sign-language-translator
+    pip install flask opencv-python mediapipe scikit-learn numpy
+    python app.py
 
-# Run the app
-python app.py
-
-# Open in browser
-http://localhost:5000
-```
+Then open your browser at http://localhost:5000
 
 ---
 
+## 👨‍💻 About
 
----
+Built by **Nicolas** — a high school 
+student from Cyprus passionate about using AI to solve real-world 
+accessibility problems.
 
 ## 🛠️ How It Works
