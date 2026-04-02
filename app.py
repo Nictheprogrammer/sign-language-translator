@@ -6,19 +6,67 @@ import pickle
 import base64
 import numpy as np
 import cv2
+import os
+import csv
+import random
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
 
 app = Flask(__name__)
 
-# Load the trained model and scaler
-print("Loading model...")
-with open('model.pkl', 'rb') as f:
-    saved = pickle.load(f)
-    model = saved['model']
-    scaler = saved['scaler']
-print("Model loaded!")
+def train_model():
+    print("Training model from dataset...")
+    rows = []
+    with open('dataset.csv', 'r') as f:
+        reader = csv.reader(f)
+        next(reader)
+        for row in reader:
+            rows.append(row)
+
+    random.shuffle(rows)
+    X, y = [], []
+    for row in rows:
+        X.append([float(v) for v in row[:-1]])
+        y.append(row[-1])
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    model = MLPClassifier(
+        hidden_layer_sizes=(256, 128, 64),
+        max_iter=1000,
+        random_state=42
+    )
+    model.fit(X_scaled, y)
+
+    with open('model.pkl', 'wb') as f:
+        pickle.dump({'model': model, 'scaler': scaler}, f)
+
+    print("Model trained and saved!")
+    return model, scaler
+
+# Load or train model
+if os.path.exists('model.pkl'):
+    print("Loading model...")
+    with open('model.pkl', 'rb') as f:
+        saved = pickle.load(f)
+        model = saved['model']
+        scaler = saved['scaler']
+    print("Model loaded!")
+else:
+    model, scaler = train_model()
 
 # Load hand detection model
 model_path = "hand_landmarker.task"
+if not os.path.exists(model_path):
+    print("Downloading hand model...")
+    import urllib.request
+    urllib.request.urlretrieve(
+        "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+        model_path
+    )
+    print("Download done!")
+
 base_options = python.BaseOptions(model_asset_path=model_path)
 options = vision.HandLandmarkerOptions(base_options=base_options, num_hands=1)
 detector = vision.HandLandmarker.create_from_options(options)
@@ -44,12 +92,10 @@ def predict():
         # Get image from browser
         data = request.json['image']
 
-        # Remove the header from base64 string
-        # Browser sends: "data:image/jpeg;base64,/9j/4AAQ..."
-        # We only want:  "/9j/4AAQ..."
+        # Decode base64 image
         image_data = base64.b64decode(data.split(',')[1])
 
-        # Convert to numpy array then to OpenCV image
+        # Convert to OpenCV image
         nparr = np.frombuffer(image_data, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -62,15 +108,12 @@ def predict():
 
         if results.hand_landmarks:
             for hand_landmarks in results.hand_landmarks:
-                # Normalize landmarks
+                # Normalize and scale
                 features = normalize(hand_landmarks)
-
-                # Scale features the same way we scaled training data
                 features_scaled = scaler.transform([features])
 
-                # Predict the letter
+                # Predict
                 prediction = model.predict(features_scaled)[0]
-
                 return jsonify({'letter': prediction, 'hand_detected': True})
 
         return jsonify({'letter': None, 'hand_detected': False})
