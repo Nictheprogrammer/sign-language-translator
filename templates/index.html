@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Translator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0f0f1a;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .main {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 1000px;
+            align-items: flex-start;
+        }
+
+        /* Left side - webcam */
+        .camera-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 16px;
+            border: 2px solid #1e1e3a;
+            transform: scaleX(-1); /* mirror the webcam */
+        }
+
+        .status {
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 999px;
+            background: #1e1e3a;
+        }
+
+        .status.detected {
+            background: #14532d;
+            color: #4ade80;
+        }
+
+        .status.not-detected {
+            background: #1e1e3a;
+            color: #6b7280;
+        }
+
+        /* Right side - output */
+        .output-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .letter-display {
+            background: #1e1e3a;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .letter-display .label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .letter-display .letter {
+            font-size: 8rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .word-display {
+            background: #1e1e3a;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .word-display .label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .word-display .text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            min-height: 50px;
+            word-break: break-all;
+        }
+
+        .word-display .text .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.8rem;
+            background: #a78bfa;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .btn-speak {
+            background: linear-gradient(90deg, #a78bfa, #60a5fa);
+            color: white;
+        }
+
+        .btn-space {
+            background: #1e1e3a;
+            color: white;
+            border: 1px solid #2e2e5a;
+        }
+
+        .btn-clear {
+            background: #1e1e3a;
+            color: #f87171;
+            border: 1px solid #2e2e5a;
+        }
+
+        .confidence-bar {
+            background: #1e1e3a;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .confidence-bar .label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .bar-track {
+            background: #0f0f1a;
+            border-radius: 999px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa, #60a5fa);
+            border-radius: 999px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .bar-value {
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: #a78bfa;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🤟 Sign Language Translator</h1>
+    <p class="subtitle">Show your hand to the webcam and sign a letter</p>
+
+    <div class="main">
+
+        <!-- Left: Webcam -->
+        <div class="camera-box">
+            <video id="video" autoplay playsinline></video>
+            <div class="status not-detected" id="status">No hand detected</div>
+        </div>
+
+        <!-- Right: Output -->
+        <div class="output-box">
+
+            <!-- Current letter -->
+            <div class="letter-display">
+                <div class="label">Current Letter</div>
+                <div class="letter" id="letter">—</div>
+            </div>
+
+            <!-- Confidence bar -->
+            <div class="confidence-bar">
+                <div class="label">Stability</div>
+                <div class="bar-track">
+                    <div class="bar-fill" id="bar"></div>
+                </div>
+                <div class="bar-value" id="bar-value">0%</div>
+            </div>
+
+            <!-- Word being built -->
+            <div class="word-display">
+                <div class="label">Your Text</div>
+                <div class="text" id="text-output">
+                    <span id="words"></span>
+                    <span class="cursor"></span>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="buttons">
+                <button class="btn-speak" onclick="speak()">🔊 Speak</button>
+                <button class="btn-space" onclick="addSpace()">Space</button>
+                <button class="btn-clear" onclick="clearText()">Clear</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const letterEl = document.getElementById('letter');
+        const statusEl = document.getElementById('status');
+        const wordsEl = document.getElementById('words');
+        const bar = document.getElementById('bar');
+        const barValue = document.getElementById('bar-value');
+
+        // Start webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => alert('Could not access webcam: ' + err));
+
+        // Smoothing buffer - same concept as predict.py
+        let buffer = [];
+        const BUFFER_SIZE = 15;
+        let lastAddedLetter = null;
+        let lastAddedTime = 0;
+
+        // Capture a frame and send to Python every 100ms
+        setInterval(async () => {
+            // Draw video frame to canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            // Convert to base64
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+
+            // Send to Flask backend
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            });
+
+            const result = await response.json();
+
+            if (result.hand_detected) {
+                // Update status
+                statusEl.textContent = '✋ Hand detected';
+                statusEl.className = 'status detected';
+
+                // Add to buffer
+                buffer.push(result.letter);
+                if (buffer.length > BUFFER_SIZE) buffer.shift();
+
+                // Count how many times the most common letter appears
+                const counts = {};
+                buffer.forEach(l => counts[l] = (counts[l] || 0) + 1);
+                const topLetter = Object.keys(counts).sort((a,b) => counts[b]-counts[a])[0];
+                const stability = Math.round((counts[topLetter] / BUFFER_SIZE) * 100);
+
+                // Update letter display
+                letterEl.textContent = topLetter;
+
+                // Update stability bar
+                bar.style.width = stability + '%';
+                barValue.textContent = stability + '%';
+
+                // Auto add letter to text when stability hits 100%
+                // and it's been at least 2 seconds since last letter added
+                const now = Date.now();
+                if (stability === 100 && (topLetter !== lastAddedLetter || now - lastAddedTime > 2000)) {
+                    wordsEl.textContent += topLetter;
+                    lastAddedLetter = topLetter;
+                    lastAddedTime = now;
+                    buffer = []; // reset buffer after adding
+                }
+
+            } else {
+                // No hand detected
+                statusEl.textContent = 'No hand detected';
+                statusEl.className = 'status not-detected';
+                letterEl.textContent = '—';
+                bar.style.width = '0%';
+                barValue.textContent = '0%';
+                buffer = [];
+            }
+
+        }, 100);
+
+        function speak() {
+            const text = wordsEl.textContent;
+            if (!text) return;
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function addSpace() {
+            wordsEl.textContent += ' ';
+        }
+
+        function clearText() {
+            wordsEl.textContent = '';
+            lastAddedLetter = null;
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+dataset.csv
+hand_landmarker.task
+__pycache__/
+*.pyc
+.env
