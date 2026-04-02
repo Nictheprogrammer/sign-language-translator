@@ -71,7 +71,7 @@ a webcam to communicate using ASL, without needing a human interpreter.
 
 **1. Python version compatibility**
 MediaPipe didn't support Python 3.14, requiring migration from the old 
-mp.solutions API to the new Tasks API — which had almost no documentation 
+mp. solutions API to the new Tasks API, which had almost no documentation 
 for beginners.
 
 **2. Similar letter confusion**
@@ -114,7 +114,6 @@ Then open your browser at http://localhost:5000
 ## 👨‍💻 About
 
 Built by **Nicolas** — a high school 
-student from Cyprus passionate about using AI to solve real-world 
+student from Cyprus who is passionate about using AI to solve real-world 
 accessibility problems.
 
-## 🛠️ How It Works
