@@ -34,6 +34,7 @@ def train_model():
 
     model = MLPClassifier(
         hidden_layer_sizes=(256, 128, 64),
+        activation='relu',
         max_iter=1000,
         random_state=42
     )
@@ -89,32 +90,30 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get image from browser
         data = request.json['image']
-
-        # Decode base64 image
         image_data = base64.b64decode(data.split(',')[1])
-
-        # Convert to OpenCV image
         nparr = np.frombuffer(image_data, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        # Convert to RGB for MediaPipe
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
-
-        # Detect hand
         results = detector.detect(mp_image)
 
         if results.hand_landmarks:
             for hand_landmarks in results.hand_landmarks:
-                # Normalize and scale
                 features = normalize(hand_landmarks)
                 features_scaled = scaler.transform([features])
-
-                # Predict
                 prediction = model.predict(features_scaled)[0]
-                return jsonify({'letter': prediction, 'hand_detected': True})
+                confidence = model.predict_proba(features_scaled).max()
+
+                # Only return prediction if confidence is above 70%
+                if confidence < 0.7:
+                    return jsonify({'letter': None, 'hand_detected': False})
+
+                return jsonify({
+                    'letter': prediction,
+                    'hand_detected': True,
+                    'confidence': round(float(confidence) * 100, 1)
+                })
 
         return jsonify({'letter': None, 'hand_detected': False})
 
@@ -122,4 +121,5 @@ def predict():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=7860)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
