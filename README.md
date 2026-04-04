@@ -3,6 +3,8 @@
 A real-time American Sign Language (ASL) translator that uses computer vision 
 and machine learning to recognize hand gestures via webcam and convert them to text.
 
+![Sign Language Translator Demo](demo.png)
+
 ## 🌐 Live Demo
 **[Try it here → https://huggingface.co/spaces/nic79cy/sign-language-translator](https://huggingface.co/spaces/nic79cy/sign-language-translator)**
 
