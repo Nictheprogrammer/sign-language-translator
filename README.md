@@ -1,3 +1,11 @@
+---
+title: Sign Language Translator
+emoji: 🤟
+colorFrom: purple
+colorTo: blue
+sdk: docker
+pinned: false
+---
 # 🤟 Sign Language Translator
 
 A real-time American Sign Language (ASL) translator that uses computer vision 
